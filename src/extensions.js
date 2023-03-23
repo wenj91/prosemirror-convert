@@ -110,6 +110,14 @@ export const Title = Node.create({
         };
     },
 
+    parseHTML() {
+        return [
+            {
+                tag: 'h1[class=node-title]',
+            },
+        ];
+    },
+
     renderHTML({ HTMLAttributes, node }) {
         const { cover } = node.attrs;
         return ['h1', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, nodeAttrsToDataset(node)), 0];
@@ -148,30 +156,68 @@ export const Collaboration = Extension.create({
   },
 });
 
+
+export const TableOfContents = Node.create({
+    name: 'tableOfContents',
+    group: 'block',
+    atom: true,
+  
+    addOptions() {
+      return {
+        onHasOneBeforeInsert: () => {},
+      };
+    },
+  
+    parseHTML() {
+      return [
+        {
+          tag: 'toc',
+        },
+      ];
+    },
+  
+    renderHTML({ HTMLAttributes }) {
+      return ['toc', mergeAttributes(HTMLAttributes)];
+    },
+  
+    addGlobalAttributes() {
+      return [
+        {
+          types: ['heading'],
+          attributes: {
+            id: {
+              default: null,
+            },
+          },
+        },
+      ];
+    },
+  });
+
 export const Extensions = [
-    Blockquote,
-    Bold,
-    BulletList,
-    Code,
-    CodeBlock,
+    // Blockquote,
+    // Bold,
+    // BulletList,
+    // Code,
+    // CodeBlock,
     // CodeBlockLowlight,
     Color,
-    Document,
-    Dropcursor,
-    Gapcursor,
-    HardBreak,
-    Heading,
+    // Document,
+    // Dropcursor,
+    // Gapcursor,
+    // HardBreak,
+    // Heading,
     Highlight,
     History,
     Image,
-    Italic,
+    // Italic,
     Link,
-    ListItem,
+    // ListItem,
     Mention,
-    OrderedList,
-    Paragraph,
+    // OrderedList,
+    // Paragraph,
     Placeholder,
-    Strike,
+    // Strike,
     Subscript,
     Superscript,
     Table,
@@ -180,11 +226,12 @@ export const Extensions = [
     TableRow,
     TaskItem,
     TaskList,
-    Text,
+    // Text,
     TextAlign,
     TextStyle,
     Underline,
     DocumentWithTitle,
-    Title
+    Title,
+    TableOfContents
 ]
 
