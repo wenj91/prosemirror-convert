@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 import { Extensions } from './extensions.js'
+import { getShortId } from './uid.js'
 import Collaboration from '@tiptap/extension-collaboration'
 import StarterKit from '@tiptap/starter-kit'
 import { createMarkdownEditor } from 'tiptap-markdown';
@@ -86,6 +87,10 @@ function markdown2prosemirror(md, title) {
   if (title) {
     title = title.replace(/\n/g, ''); // 移除字符串中的换行符
   }
+
+  md = '# ' + title + '  \n'
+  + md
+
   
   const ydoc2 = new Y.Doc();
   const col2 = Collaboration.configure({ document: ydoc2 })
@@ -125,7 +130,7 @@ function markdown2prosemirror(md, title) {
 
 async function docProcess() {
 
-  const pageSize = 100; // 每页显示的记录数
+  const pageSize = 1000; // 每页显示的记录数
   let currentPage = 1; // 当前页码
 
 
@@ -171,4 +176,189 @@ async function docProcess() {
   }
 }
 
-docProcess()
+// docProcess()
+
+
+async function docUidProcess() {
+
+  const pageSize = 1000; // 每页显示的记录数
+  let currentPage = 1; // 当前页码
+
+
+  // 查询符合条件的记录总数
+  const sqlCount = 'SELECT count(1) total FROM document where uid is null';
+  let obj = await query(sqlCount);
+  console.log(obj[0].total)
+
+  const total = obj[0].total
+
+  const totalPages = Math.ceil(total / pageSize); // 总页数
+
+  // 循环查询每一页的数据
+  for (currentPage = 1; currentPage <= totalPages; currentPage++) {
+    const offset = (currentPage - 1) * pageSize; // 记录偏移量
+    const sql = `SELECT id FROM document where uid is null LIMIT ${pageSize} OFFSET ${offset}`;
+
+    let results = await query(sql)
+    // 处理查询结果
+    for (let i = 0; i < results.length; i++) {
+      const row = results[i];
+      // 处理每一行数据
+      let id = row.id
+
+      let uid = getShortId()
+    
+
+      // 执行一些需要在事务中进行的操作，例如插入、更新、删除数据等
+      let affected = await query('update document set uid=? where id=?', [uid, id])
+
+      console.log('id:', id, affected.affectedRows)
+    }
+  }
+}
+
+// docUidProcess()
+
+
+async function bookUidProcess() {
+
+  const pageSize = 1000; // 每页显示的记录数
+  let currentPage = 1; // 当前页码
+
+
+  // 查询符合条件的记录总数
+  const sqlCount = 'SELECT count(1) total FROM book where uid is null';
+  let obj = await query(sqlCount);
+  console.log(obj[0].total)
+
+  const total = obj[0].total
+
+  const totalPages = Math.ceil(total / pageSize); // 总页数
+
+  // 循环查询每一页的数据
+  for (currentPage = 1; currentPage <= totalPages; currentPage++) {
+    const offset = (currentPage - 1) * pageSize; // 记录偏移量
+    const sql = `SELECT id FROM book where uid is null LIMIT ${pageSize} OFFSET ${offset}`;
+
+    let results = await query(sql)
+    // 处理查询结果
+    for (let i = 0; i < results.length; i++) {
+      const row = results[i];
+      // 处理每一行数据
+      let id = row.id
+
+      let uid = getShortId()
+    
+
+      // 执行一些需要在事务中进行的操作，例如插入、更新、删除数据等
+      let affected = await query('update book set uid=? where id=?', [uid, id])
+
+      console.log('id:', id, affected.affectedRows)
+    }
+  }
+}
+
+// bookUidProcess()
+
+
+async function bookRemarkProcess() {
+
+  const pageSize = 1000; // 每页显示的记录数
+  let currentPage = 1; // 当前页码
+
+
+  // 查询符合条件的记录总数
+  const sqlCount = 'SELECT count(1) total FROM wiki';
+  let obj = await query(sqlCount);
+  console.log(obj[0].total)
+
+  const total = obj[0].total
+
+  const totalPages = Math.ceil(total / pageSize); // 总页数
+
+  // 循环查询每一页的数据
+  for (currentPage = 1; currentPage <= totalPages; currentPage++) {
+    const offset = (currentPage - 1) * pageSize; // 记录偏移量
+    const sql = `SELECT * FROM wiki LIMIT ${pageSize} OFFSET ${offset}`;
+
+    let results = await query(sql)
+    // 处理查询结果
+    for (let i = 0; i < results.length; i++) {
+      const row = results[i];
+      // 处理每一行数据
+      let id = row.id
+      const title = '概述'
+      const description = row.description
+
+      const {json, buffer} = markdown2prosemirror(description, title)
+
+      let doc = {
+        id: getShortId(),
+        organizationId: '3otgQ1A86LYv',
+        wikiId: row.id,
+        isWikiHome: 1,
+        createUserId: '6aa38bcb-d781-4492-a936-94942964771e',
+        parentDocumentId: null,
+        title: '概述',
+        content: JSON.stringify({ default: json }),
+        state: buffer,
+        status: 'public',
+        sharePassword: '',
+        views: 0,
+        index: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+
+      console.log("row:", id, title)
+
+      // 执行一些需要在事务中进行的操作，例如插入、更新、删除数据等
+      let affected = await query('insert into document set ?', doc)
+
+      // 执行一些需要在事务中进行的操作，例如插入、更新、删除数据等
+      let affected2 = await query('update wiki set homeDocumentId=? where id=?', [doc.id, id])
+
+      console.log(affected, affected2)
+    }
+  }
+}
+
+// bookRemarkProcess()
+
+
+async function bookCategoryProcess() {
+
+  const pageSize = 1000; // 每页显示的记录数
+  let currentPage = 1; // 当前页码
+
+
+  // 查询符合条件的记录总数
+  const sqlCount = 'SELECT count(1) total FROM book_category';
+  let obj = await query(sqlCount);
+  console.log(obj[0].total)
+
+  const total = obj[0].total
+
+  const totalPages = Math.ceil(total / pageSize); // 总页数
+
+  // 循环查询每一页的数据
+  for (currentPage = 1; currentPage <= totalPages; currentPage++) {
+    const offset = (currentPage - 1) * pageSize; // 记录偏移量
+    const sql = `SELECT * FROM book_category LIMIT ${pageSize} OFFSET ${offset}`;
+
+    let results = await query(sql)
+    // 处理查询结果
+    for (let i = 0; i < results.length; i++) {
+      const row = results[i];
+      // 处理每一行数据
+      let id = row.id
+
+      // 执行一些需要在事务中进行的操作，例如插入、更新、删除数据等
+      let affected2 = await query('update book_category set uid=? where id=?', [getShortId(), id])
+
+      console.log(affected2)
+    }
+  }
+}
+
+bookCategoryProcess()
